@@ -66,8 +66,8 @@ def audit_mail(data, test, subject, report, mails, branch_code=None, cc_mail=Non
             })
         db.session.commit()
         #db.engine.execute(text(query).execution_options(autocommit=True))
-        with db.engine.connect() as conn:
-            conn.execution_options(autocommit=True).execute(text(query))
+        with db.engine.begin() as conn:
+            conn.execute(text(query))
         
         
      

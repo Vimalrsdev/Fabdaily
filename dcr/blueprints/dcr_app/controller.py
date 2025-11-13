@@ -27,7 +27,7 @@ import os
 import random
 from dcr import db
 import haversine as hs
-from sqlalchemy.orm.exc import MultipleResultsFound
+from sqlalchemy.exc import MultipleResultsFound
 from werkzeug.utils import secure_filename
 # Importing authentication middleware.
 from dcr.middlewares.auth_guard import api_key_required, authenticate
@@ -750,7 +750,7 @@ def submit_deposit():
         # city_code = []
         citycode = text(
             f"""SELECT [BranchInfo].[CityCode] FROM {SERVER_DB}.[dbo].[BranchInfo] WHERE[BranchInfo].[BranchCode] = '{branch_code}' """)
-        test = db.engine.execute(citycode).fetchall()
+        test = db.session.execute(citycode).fetchall()
         result = SerializeSQLAResult(test).serialize()
         city_code = result[0]['CityCode']
         # for city in result:
@@ -2510,7 +2510,7 @@ def submit_collection_amount():
         collection_date = curent_date.strftime("%d/%m/%Y")
         citycode = text(
             f"""SELECT [BranchInfo].[CityCode] FROM {SERVER_DB}.[dbo].[BranchInfo] WHERE[BranchInfo].[BranchCode] = '{branch_code}' """)
-        test = db.engine.execute(citycode).fetchall()
+        test = db.session.execute(citycode).fetchall()
         result = SerializeSQLAResult(test).serialize()
         city_code = result[0]['CityCode']
         query_mail = f"EXEC {OLD_DB}.dbo.GetBranchEmail @branchcode = '{branch_code}'"

@@ -21,6 +21,7 @@ from .loggers import error_logger
 
 from openpyxl import Workbook
 from openpyxl.styles import NamedStyle, Font, Border, Alignment, Side
+from sqlalchemy import text as sa_text
 
 
 class GetDict:
@@ -336,7 +337,10 @@ class CallSP:
         """
         try:
             # Executing the stored procedure.
-            self.result = db.session.execute(self.query)
+            statement = self.query
+            if isinstance(statement, str):
+                statement = sa_text(statement)
+            self.result = db.session.execute(statement)
         except Exception as e:
             error_logger().error(e)
         return self
@@ -351,9 +355,11 @@ class CallSP:
             item = self.result.fetchone()
             return_dict = {}
             if item is not None:
-                keys = item.keys()
-                values = item
-                for key, value in zip(keys, values):
+                if hasattr(item, "_mapping"):
+                    iterable = item._mapping.items()
+                else:
+                    iterable = zip(item.keys(), item)
+                for key, value in iterable:
                     if type(value) is date:
                         value = value.strftime("%Y-%m-%d")
                     return_dict[key] = value
@@ -373,10 +379,12 @@ class CallSP:
             return_list = []
             if all_items is not None:
                 for item in all_items:
-                    keys = item.keys()
-                    values = item.values()
                     dict_row = {}
-                    for key, value in zip(keys, values):
+                    if hasattr(item, "_mapping"):
+                        iterable = item._mapping.items()
+                    else:
+                        iterable = zip(item.keys(), item)
+                    for key, value in iterable:
                         # Type conversion for serialization.
                         if type(value) is Decimal:
                             dict_row[key] = float(value)
