@@ -505,7 +505,7 @@ def stock_details():
 
         scanned_tags = """SELECT COUNT(TagNo) as scannedtag from AuditTags WHERE Date =:today_date and 
         BranchCode=:branch_code and ScannedBy=:user_id and IsNoStock=:IsNoStock and IsValidTag=:IsValidTag"""
-        result = db.session.execute(scanned_tags,
+        result = db.session.execute(text(scanned_tags),
                                     {'today_date': today_date, 'branch_code': branch_code, 'user_id': user_id,
                                      'IsNoStock': 0, 'IsValidTag': 1})
         scanned_tag_count = result.scalar()
@@ -843,7 +843,7 @@ def garment_audit():
             tags_sp.append(tag['tag_no'])
             try:
                 qry = "INSERT INTO Temp_AllScannedTags(tag_no, entry_type,ScannedBy,BranchCode) VALUES (:tag_no, :entry_type,:ScannedBy,:BranchCode)"
-                db.session.execute(qry, {'tag_no': tag['tag_no'], 'entry_type': tag['entry_type'], 'ScannedBy': user_id,
+                db.session.execute(text(qry), {'tag_no': tag['tag_no'], 'entry_type': tag['entry_type'], 'ScannedBy': user_id,
                                          'BranchCode': branch_code})
                 db.session.commit()
             except Exception as e:
@@ -854,7 +854,7 @@ def garment_audit():
         if scan_id is None:
             try:
                 scan_id_qry = """SELECT ISNULL((SELECT MAX(ScanId) + 1 FROM AuditTags WHERE CONVERT(DATE, Date) = CONVERT(DATE, GETDATE()) and IsMss=:is_mss and BranchCode=:branch_code AND AuditedBy=:user_id), 1)"""
-                result = db.session.execute(scan_id_qry,
+                result = db.session.execute(text(scan_id_qry),
                                             {'branch_code': branch_code, 'user_id': user_id, 'is_mss': is_mss})
                 scan_id = result.scalar()
             except Exception as ex:
@@ -925,7 +925,7 @@ def garment_audit():
             sp_status =''
             try:
                 invalid_tags_qry = """select  TagNo as tag_no, EntryType as entry_type FROM AuditTags WHERE AuditedBy=:user_id AND ScanId = :scan_id AND  CONVERT(DATE, Date) = CONVERT(DATE, GETDATE())  AND BranchCode=:branch_code and IsScanned=1 AND IsValidTag =0 """
-                result = db.session.execute(invalid_tags_qry,
+                result = db.session.execute(text(invalid_tags_qry),
                                             {'branch_code': branch_code, 'user_id': user_id,
                                              'scan_id': scan_id}).fetchall()
                 previous_invalid_tags = SerializeSQLAResult(result).serialize()
@@ -983,7 +983,7 @@ def garment_audit():
         if (sp_status == 'ALL-TAGS'):
             try:
                 qry = "DELETE FROM AuditTags WHERE ScanId =:scan_id and AuditedBy =:ScannedBy and BranchCode =:BranchCode and Date= :today_date and IsMSS = :is_mss"
-                db.session.execute(qry, {'scan_id': scan_id, 'is_mss': is_mss, 'ScannedBy': user_id,
+                db.session.execute(text(qry), {'scan_id': scan_id, 'is_mss': is_mss, 'ScannedBy': user_id,
                                          'today_date': today_date,
                                          'BranchCode': branch_code})
 
@@ -2024,7 +2024,7 @@ def get_audit_tag_detailsLive():
         try:
             scan_id_qry = """SELECT GarmentCount AS AuditGarmentCount FROM AuditGarmentCount WHERE ScanId= (SELECT MAX(ScanId) FROM AuditGarmentCount WHERE CONVERT(DATE, Date) = CONVERT(DATE, GETDATE()) and BranchCode=:branch_code AND AuditedBy=:user_id) and  CONVERT(DATE, Date) = CONVERT(DATE, GETDATE()) and BranchCode=:branch_code AND AuditedBy=:user_id"""
             # SELECT garmntNo FROM table1 WHERE id = (SELECT MAX(id) FROM table1 WHERE branchcode = 1)
-            result = db.session.execute(scan_id_qry,
+            result = db.session.execute(text(scan_id_qry),
                                         {'branch_code': branch_code, 'user_id': user_id})
             total_garment_count = result.scalar()
 
@@ -2507,7 +2507,7 @@ def get_audit_tag_detailsNew():
                             GarmentBranchCode = :branch_code AND
                             GarmentStatus IN ('In Transits to CDC', 'Pending Transfer Out From CDC', 'Transfer in at CDC', 'Invoiced & Delivered')"""
 
-            result = db.session.execute(scan_id_qry,
+            result = db.session.execute(text(scan_id_qry),
                                         {'branch_code': branch_code, 'user_id': user_id})
             total_garment_count = result.scalar()
 
@@ -2974,7 +2974,7 @@ def get_audit_tag_details():
                                 OR (GarmentStatus = 'Invoiced & Delivered' AND IsDelivered = 'Un-Delivered')
                             )"""
 
-            result = db.session.execute(scan_id_qry,
+            result = db.session.execute(text(scan_id_qry),
                                         {'branch_code': branch_code, 'user_id': user_id})
             total_garment_count = result.scalar()
 
@@ -5825,7 +5825,7 @@ def get_tag_detailsNew():
                     AuditTags.isScannedInMss = 0
                 """
                 
-                result = db.session.execute(sql_query, params).fetchall()
+                result = db.session.execute(text(sql_query), params).fetchall()
                 without_complaints_tag_details.extend(result)
 
             # for row in batched_results:

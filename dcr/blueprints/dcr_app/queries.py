@@ -28,7 +28,8 @@ def dcr_daily_collection_email(collection_details):
                 f"@P11 = '{collection_details['CollectedBy']}', @P12 = '{collection_details['CityCode']}', @P13 = NULL," \
                 f"@P14 = NULL, @P15 = NULL, @P16 = NULL, @P17 = NULL, @P18 = NULL, @P19 = NULL, @P20 = NULL, " \
                 f"@REC_ID = '0'"
-        db.engine.execute(text(query).execution_options(autocommit=True))
+        with db.engine.begin() as connection:
+            connection.execute(text(query))
 
         log_data = {
             'collection mail After mail qry': query
@@ -54,7 +55,8 @@ def dcr_deposit_mail(deposit_details):
                 f"@P6 = '{deposit_details['CityCode']}', @P7 = NULL, @P8 = NULL,@P9 = NULL, @P10 = NULL, @P11 = NULL, @P12 = NULL, @P13 = NULL, " \
                 f"@P14 = NULL," \
                 f"@P15= NULL,@P16 = NULL, @P17 = NULL,@P18 = NULL, @P19 = NULL , @P20 = NULL,@REC_ID = '0'"
-        db.engine.execute(text(query).execution_options(autocommit=True))
+        with db.engine.begin() as connection:
+            connection.execute(text(query))
 
         log_data = {
             'deposit mail': query

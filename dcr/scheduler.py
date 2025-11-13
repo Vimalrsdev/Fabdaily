@@ -126,7 +126,8 @@ def send_mail(app: Flask):
 
             info_logger("Route: /scheduler/send_mail").info(json.dumps({"query": email_query}))
 
-            db.engine.execute(text(email_query).execution_options(autocommit=True))
+            with db.engine.begin() as connection:
+                connection.execute(text(email_query))
             info_logger("Route: /scheduler/send_mail").info("Email sent successfully.")
 
     except Exception as e:
@@ -230,7 +231,8 @@ def sendmailnotauditedstores(app: Flask):
 
             info_logger("Route: /scheduler/sendmailnotauditedstores").info(f"STEP 8: Before sending email: {email_query}")
 
-            db.engine.execute(text(email_query).execution_options(autocommit=True))
+            with db.engine.begin() as connection:
+                connection.execute(text(email_query))
 
             info_logger("Route: /scheduler/sendmailnotauditedstores").info("STEP 9: Email sent successfully")
 
